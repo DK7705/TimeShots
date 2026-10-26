@@ -1,0 +1,20 @@
+## Build and Output
+[Bb]in/
+[Oo]bj/
+dist/
+publish/
+
+## Visual Studio & Rider
+.vs/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+## Temporary & Logs
+*.log
+*.tmp
+thumbs/
+captures/

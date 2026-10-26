@@ -1,0 +1,34 @@
+<Window x:Class="TimeShots.App.Views.RegionOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RegionOverlayWindow"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="#40000000"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Cursor="Cross"
+        MouseDown="OnMouseDown"
+        MouseMove="OnMouseMove"
+        MouseUp="OnMouseUp"
+        KeyDown="OnKeyDown">
+    <Canvas x:Name="OverlayCanvas">
+        <Rectangle x:Name="SelectionRect"
+                   Stroke="#38bdf8"
+                   StrokeThickness="2"
+                   Fill="#2038bdf8"
+                   Visibility="Collapsed" />
+        <Border x:Name="DimensionBadge"
+                Background="#1e293b"
+                BorderBrush="#38bdf8"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="6,2"
+                Visibility="Collapsed">
+            <TextBlock x:Name="DimensionText"
+                       Foreground="#f8fafc"
+                       FontSize="11"
+                       FontFamily="Consolas" />
+        </Border>
+    </Canvas>
+</Window>

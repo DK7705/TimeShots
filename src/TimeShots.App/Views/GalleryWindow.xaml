@@ -1,0 +1,192 @@
+<Window x:Class="TimeShots.App.Views.GalleryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TimeShots — Gallery"
+        Width="960" Height="640"
+        MinWidth="680" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Background="#0f172a">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#f8fafc" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+        </Style>
+
+        <Style x:Key="RoundedButton" TargetType="Button">
+            <Setter Property="Background" Value="#1e293b" />
+            <Setter Property="Foreground" Value="#f8fafc" />
+            <Setter Property="BorderBrush" Value="#334155" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#334155" />
+                    <Setter Property="BorderBrush" Value="#38bdf8" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource RoundedButton}">
+            <Setter Property="Background" Value="#0284c7" />
+            <Setter Property="BorderBrush" Value="#38bdf8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#0369a1" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Topbar -->
+        <Border Grid.Row="0" Background="#1e293b" BorderBrush="#334155" BorderThickness="0,0,0,1" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="📸 TimeShots" FontSize="16" FontWeight="Bold" Foreground="#38bdf8" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBox x:Name="SearchBox" Width="200" Height="28" Padding="6,2"
+                             Background="#0f172a" Foreground="#f8fafc" BorderBrush="#334155"
+                             Text="Search by date or hash..." GotFocus="OnSearchGotFocus" LostFocus="OnSearchLostFocus"
+                             TextChanged="OnSearchTextChanged" VerticalContentAlignment="Center" Margin="0,0,12,0" />
+
+                    <TextBlock Text="From:" VerticalAlignment="Center" Foreground="#94a3b8" Margin="0,0,4,0" />
+                    <DatePicker x:Name="FromDatePicker" Width="110" Height="28" SelectedDateChanged="OnFilterChanged" Margin="0,0,8,0" />
+
+                    <TextBlock Text="To:" VerticalAlignment="Center" Foreground="#94a3b8" Margin="0,0,4,0" />
+                    <DatePicker x:Name="ToDatePicker" Width="110" Height="28" SelectedDateChanged="OnFilterChanged" Margin="0,0,12,0" />
+
+                    <Button Style="{StaticResource RoundedButton}" Content="↻ Refresh" Click="OnRefreshClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content with Grid & Sidebar -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Grid of captures -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="20">
+                <Grid>
+                    <ItemsControl x:Name="CapturesItemsControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="220" Height="180" Margin="8" Background="#1e293b"
+                                        BorderBrush="#334155" BorderThickness="1" CornerRadius="8"
+                                        Cursor="Hand" MouseDown="OnCaptureCardMouseDown">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Border Grid.Row="0" Background="#000000" CornerRadius="8,8,0,0">
+                                            <Image Source="{Binding ImagePath}" Stretch="Uniform" />
+                                        </Border>
+
+                                        <StackPanel Grid.Row="1" Padding="10">
+                                            <TextBlock Text="{Binding FormattedTimestamp}" FontSize="12" FontWeight="SemiBold" />
+                                            <Grid Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding Mode}" FontSize="11" Foreground="#94a3b8" HorizontalAlignment="Left" />
+                                                <TextBlock Text="{Binding Sequence, StringFormat='#{0}'}" FontSize="11" Foreground="#38bdf8" HorizontalAlignment="Right" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                        <TextBlock Text="🖼️" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="No captures found" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,8,0,4" />
+                        <TextBlock Text="Press Ctrl+Shift+S or use tray menu to capture." Foreground="#94a3b8" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- Details Sidebar -->
+            <Border x:Name="DetailsSidebar" Grid.Column="1" Width="320" Background="#1e293b"
+                    BorderBrush="#334155" BorderThickness="1,0,0,0" Visibility="Collapsed">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+                    <StackPanel>
+                        <DockPanel LastChildFill="False" Margin="0,0,0,16">
+                            <TextBlock Text="Capture Details" FontSize="15" FontWeight="Bold" DockPanel.Dock="Left" VerticalAlignment="Center" />
+                            <Button Style="{StaticResource RoundedButton}" Content="✕" Width="28" Height="28" Padding="0"
+                                    DockPanel.Dock="Right" Click="OnCloseSidebarClick" />
+                        </DockPanel>
+
+                        <!-- Preview -->
+                        <Border Height="180" Background="#000000" CornerRadius="6" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,16">
+                            <Image x:Name="SidebarPreviewImage" Stretch="Uniform" />
+                        </Border>
+
+                        <!-- Verify action -->
+                        <Button x:Name="VerifyButton" Style="{StaticResource PrimaryButton}" Content="Verify Integrity"
+                                Height="34" Margin="0,0,0,8" Click="OnVerifyClick" />
+                        <Border x:Name="VerifyResultBanner" CornerRadius="6" Padding="8" Margin="0,0,0,16" Visibility="Collapsed">
+                            <TextBlock x:Name="VerifyResultText" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" />
+                        </Border>
+
+                        <!-- Metadata -->
+                        <TextBlock Text="TIMESTAMPS" FontSize="11" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,6" />
+                        <TextBlock x:Name="TxtLocalTime" Text="Local: -" FontSize="12" Margin="0,0,0,4" />
+                        <TextBlock x:Name="TxtUtcTime" Text="UTC: -" FontSize="12" Margin="0,0,0,4" />
+                        <TextBlock x:Name="TxtTimezone" Text="Timezone: -" FontSize="12" Margin="0,0,0,16" />
+
+                        <TextBlock Text="INTEGRITY &amp; CHAIN" FontSize="11" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,6" />
+                        <TextBlock x:Name="TxtSequence" Text="Sequence: -" FontSize="12" Margin="0,0,0,4" />
+                        <TextBlock Text="Image Hash:" FontSize="12" Foreground="#94a3b8" />
+                        <TextBox x:Name="TxtImageHash" IsReadOnly="True" Background="#0f172a" Foreground="#f8fafc"
+                                 BorderBrush="#334155" FontSize="11" FontFamily="Consolas" Padding="4" Margin="0,2,0,8" />
+                        <TextBlock Text="Chain Hash:" FontSize="12" Foreground="#94a3b8" />
+                        <TextBox x:Name="TxtChainHash" IsReadOnly="True" Background="#0f172a" Foreground="#f8fafc"
+                                 BorderBrush="#334155" FontSize="11" FontFamily="Consolas" Padding="4" Margin="0,2,0,16" />
+
+                        <TextBlock Text="SYSTEM INFO" FontSize="11" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,6" />
+                        <TextBlock x:Name="TxtResolution" Text="Resolution: -" FontSize="12" Margin="0,0,0,4" />
+                        <TextBlock x:Name="TxtMode" Text="Mode: -" FontSize="12" Margin="0,0,0,4" />
+                        <TextBlock Text="File Path:" FontSize="12" Foreground="#94a3b8" />
+                        <TextBox x:Name="TxtFilePath" IsReadOnly="True" Background="#0f172a" Foreground="#f8fafc"
+                                 BorderBrush="#334155" FontSize="11" Padding="4" Margin="0,2,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

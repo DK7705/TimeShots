@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <ProjectReference Include="..\TimeShots.Core\TimeShots.Core.csproj" />
   </ItemGroup>
 
 </Project>

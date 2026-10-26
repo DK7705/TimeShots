@@ -4,6 +4,10 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeShots.App", "src\TimeShots.App\TimeShots.App.csproj", "{B7B5A3C1-4A59-4E65-B2A8-019E0A9DC143}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeShots.Core", "src\TimeShots.Core\TimeShots.Core.csproj", "{C8C6A4D2-5B60-4F76-C3B9-020F1BAED254}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeShots.Cli", "src\TimeShots.Cli\TimeShots.Cli.csproj", "{D9D7B5E3-6C71-4087-D4CA-131F2CBFE365}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +18,14 @@ Global
 		{B7B5A3C1-4A59-4E65-B2A8-019E0A9DC143}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7B5A3C1-4A59-4E65-B2A8-019E0A9DC143}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7B5A3C1-4A59-4E65-B2A8-019E0A9DC143}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8C6A4D2-5B60-4F76-C3B9-020F1BAED254}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8C6A4D2-5B60-4F76-C3B9-020F1BAED254}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8C6A4D2-5B60-4F76-C3B9-020F1BAED254}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8C6A4D2-5B60-4F76-C3B9-020F1BAED254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D7B5E3-6C71-4087-D4CA-131F2CBFE365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D7B5E3-6C71-4087-D4CA-131F2CBFE365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D7B5E3-6C71-4087-D4CA-131F2CBFE365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D7B5E3-6C71-4087-D4CA-131F2CBFE365}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

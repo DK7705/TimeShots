@@ -32,7 +32,7 @@ public class HotkeyManager : IDisposable
         {
             WindowStyle = 0,
             ExtendedWindowStyle = 0,
-            ParentWindow = IntPtr.Zero
+            ParentWindow = new IntPtr(-3) // HWND_MESSAGE
         };
         _source = new HwndSource(parameters);
         _hwnd = _source.Handle;

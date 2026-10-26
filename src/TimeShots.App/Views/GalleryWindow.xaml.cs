@@ -69,9 +69,10 @@ public partial class GalleryWindow : Window
         {
             if (!string.IsNullOrEmpty(item.ImagePath) && System.IO.File.Exists(item.ImagePath))
             {
+                var fullPath = System.IO.Path.GetFullPath(item.ImagePath);
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
-                bitmap.UriSource = new Uri(item.ImagePath);
+                bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.EndInit();
                 SidebarPreviewImage.Source = bitmap;

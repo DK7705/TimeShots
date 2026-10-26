@@ -21,6 +21,8 @@ public partial class RegionOverlayWindow : Window
         Top = SystemParameters.VirtualScreenTop;
         Width = SystemParameters.VirtualScreenWidth;
         Height = SystemParameters.VirtualScreenHeight;
+
+        Loaded += (_, _) => Activate();
     }
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -79,9 +81,12 @@ public partial class RegionOverlayWindow : Window
 
         if (width > 5 && height > 5)
         {
-            var screenX = (int)(Left + x);
-            var screenY = (int)(Top + y);
-            RegionSelected?.Invoke(new Rectangle(screenX, screenY, width, height));
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
+            var screenX = (int)((Left + x) * dpi.DpiScaleX);
+            var screenY = (int)((Top + y) * dpi.DpiScaleY);
+            var physicalWidth = (int)(width * dpi.DpiScaleX);
+            var physicalHeight = (int)(height * dpi.DpiScaleY);
+            RegionSelected?.Invoke(new Rectangle(screenX, screenY, physicalWidth, physicalHeight));
         }
     }
 

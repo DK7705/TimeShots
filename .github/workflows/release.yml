@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Test solution
+        run: dotnet test TimeShots.sln --configuration Release
+
+      - name: Publish desktop app
+        run: dotnet publish src/TimeShots.App/TimeShots.App.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/app
+
+      - name: Publish CLI
+        run: dotnet publish src/TimeShots.Cli/TimeShots.Cli.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output publish/cli
+
+      - name: Prepare release assets and checksums
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force publish/assets | Out-Null
+          Copy-Item publish/app/TimeShots.App.exe publish/assets/TimeShots.exe
+          Copy-Item publish/cli/timeshots.exe publish/assets/timeshots-cli.exe
+          Get-ChildItem publish/assets/*.exe |
+            ForEach-Object {
+              $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  $($_.Name)"
+            } | Set-Content publish/assets/SHA256SUMS.txt -Encoding ascii
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$env:GITHUB_REF_NAME" publish/assets/TimeShots.exe publish/assets/timeshots-cli.exe publish/assets/SHA256SUMS.txt --title "$env:GITHUB_REF_NAME" --generate-notes

@@ -40,10 +40,20 @@ public static class HashChainEngine
 
     public static bool VerifySignature(string chainHash, string timestampIso, string signatureHex, byte[] secretKey)
     {
-        string expectedSignature = ComputeSignature(chainHash, timestampIso, secretKey);
-        byte[] expectedBytes = Encoding.UTF8.GetBytes(expectedSignature);
-        byte[] actualBytes = Encoding.UTF8.GetBytes(signatureHex.ToLowerInvariant());
+        if (string.IsNullOrWhiteSpace(signatureHex))
+        {
+            return false;
+        }
 
-        return CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
+        try
+        {
+            byte[] expectedBytes = Convert.FromHexString(ComputeSignature(chainHash, timestampIso, secretKey));
+            byte[] actualBytes = Convert.FromHexString(signatureHex);
+            return CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }

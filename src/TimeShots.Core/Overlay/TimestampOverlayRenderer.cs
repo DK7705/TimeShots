@@ -53,13 +53,17 @@ public static class TimestampOverlayRenderer
         else if (style == "compact")
         {
             lines.Add($"{localFormatted}");
-            lines.Add($"#{sequence:D5} | sha256:{truncatedHash}");
+            lines.Add(string.IsNullOrWhiteSpace(truncatedHash)
+                ? $"#{sequence:D5}"
+                : $"#{sequence:D5} | sha256:{truncatedHash}");
         }
         else // default
         {
             lines.Add($"{utcIso} (UTC)");
             lines.Add($"{localFormatted} (L)");
-            lines.Add($"#{sequence:D5} | sha256:{truncatedHash}");
+            lines.Add(string.IsNullOrWhiteSpace(truncatedHash)
+                ? $"#{sequence:D5}"
+                : $"#{sequence:D5} | sha256:{truncatedHash}");
         }
 
         // Measure text bounding box

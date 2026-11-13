@@ -46,7 +46,32 @@ public static class Verifier
                 : $"Chain hash calculation mismatch! Expected {expectedChainHash}, got {metadata.Integrity.ChainHash}"
         });
 
-        // Check 3: HMAC Signature (if key provided)
+        var timestampValid = DateTimeOffset.TryParse(
+            metadata.Timestamps.Utc,
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind,
+            out var timestamp) && timestamp.Offset == TimeSpan.Zero;
+        result.Checks.Add(new VerificationCheck
+        {
+            Name = "UTC Timestamp",
+            Passed = timestampValid,
+            Message = timestampValid ? "Timestamp is valid UTC." : "Timestamp is invalid or is not UTC."
+        });
+
+        var genesisValid = metadata.Sequence > 0 &&
+            (metadata.Sequence != 1 ||
+             string.IsNullOrWhiteSpace(metadata.Integrity.PreviousHash) ||
+             string.Equals(metadata.Integrity.PreviousHash, HashChainEngine.GenesisHash, StringComparison.OrdinalIgnoreCase));
+        result.Checks.Add(new VerificationCheck
+        {
+            Name = "Capture Sequence",
+            Passed = genesisValid,
+            Message = genesisValid
+                ? "Capture sequence and genesis anchor are valid."
+                : "Sequence must be positive, and the first capture must link to genesis."
+        });
+
+        // Check 4: HMAC Signature (if key provided)
         if (secretKey != null && secretKey.Length > 0)
         {
             bool sigMatch = HashChainEngine.VerifySignature(
@@ -69,8 +94,8 @@ public static class Verifier
             result.Checks.Add(new VerificationCheck
             {
                 Name = "HMAC-SHA256 Signature",
-                Passed = true,
-                Message = "Skipped (no signing key provided for verification)."
+                Passed = false,
+                Message = "No signing key was provided; the signature was not verified."
             });
         }
 
@@ -95,8 +120,18 @@ public static class Verifier
 
         var sorted = captures.OrderBy(c => c.Sequence).ToList();
 
-        // 1. Sequence continuity
-        bool sequenceValid = true;
+        // 1. Sequence continuity starts at the genesis capture.
+        bool sequenceValid = sorted[0].Sequence == 1;
+        if (!sequenceValid)
+        {
+            result.Checks.Add(new VerificationCheck
+            {
+                Name = "Sequence Monotonicity",
+                Passed = false,
+                Message = $"The first capture must have sequence #1, but found #{sorted[0].Sequence}."
+            });
+        }
+
         for (int i = 1; i < sorted.Count; i++)
         {
             if (sorted[i].Sequence != sorted[i - 1].Sequence + 1)
@@ -148,8 +183,19 @@ public static class Verifier
             });
         }
 
-        // 3. Chain hash linkage
-        bool linkageValid = true;
+        // 3. Chain hash linkage and genesis anchor
+        bool linkageValid = string.IsNullOrWhiteSpace(sorted[0].Integrity.PreviousHash) ||
+            string.Equals(sorted[0].Integrity.PreviousHash, HashChainEngine.GenesisHash, StringComparison.OrdinalIgnoreCase);
+        if (!linkageValid)
+        {
+            result.Checks.Add(new VerificationCheck
+            {
+                Name = "Chain Hash Linkage",
+                Passed = false,
+                Message = "The first capture does not link to the genesis hash."
+            });
+        }
+
         for (int i = 1; i < sorted.Count; i++)
         {
             if (!string.Equals(sorted[i].Integrity.PreviousHash, sorted[i - 1].Integrity.ChainHash, StringComparison.OrdinalIgnoreCase))
@@ -174,24 +220,40 @@ public static class Verifier
             });
         }
 
-        // 4. Monotonic timestamps (UTC)
+        // 4. Valid, monotonic UTC timestamps
         bool timeValid = true;
-        for (int i = 1; i < sorted.Count; i++)
+        var timestamps = new DateTimeOffset[sorted.Count];
+        for (int i = 0; i < sorted.Count; i++)
         {
-            if (DateTimeOffset.TryParse(sorted[i].Timestamps.Utc, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var curr) &&
-                DateTimeOffset.TryParse(sorted[i - 1].Timestamps.Utc, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var prev))
+            if (!DateTimeOffset.TryParse(
+                    sorted[i].Timestamps.Utc,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind,
+                    out timestamps[i]) ||
+                timestamps[i].Offset != TimeSpan.Zero)
             {
-                if (curr < prev)
+                timeValid = false;
+                result.Checks.Add(new VerificationCheck
                 {
-                    timeValid = false;
-                    result.Checks.Add(new VerificationCheck
-                    {
-                        Name = "Timestamp Ordering",
-                        Passed = false,
-                        Message = $"Time regression! Capture #{sorted[i].Sequence} ({curr:O}) is earlier than #{sorted[i - 1].Sequence} ({prev:O})."
-                    });
-                    break;
-                }
+                    Name = "Timestamp Ordering",
+                    Passed = false,
+                    Message = $"Capture #{sorted[i].Sequence} has an invalid or non-UTC timestamp."
+                });
+                break;
+            }
+        }
+
+        for (int i = 1; timeValid && i < sorted.Count; i++)
+        {
+            if (timestamps[i] < timestamps[i - 1])
+            {
+                timeValid = false;
+                result.Checks.Add(new VerificationCheck
+                {
+                    Name = "Timestamp Ordering",
+                    Passed = false,
+                    Message = $"Time regression! Capture #{sorted[i].Sequence} ({timestamps[i]:O}) is earlier than #{sorted[i - 1].Sequence} ({timestamps[i - 1]:O})."
+                });
             }
         }
         if (timeValid)
@@ -223,6 +285,15 @@ public static class Verifier
                 Message = sigFailures == 0
                     ? $"All {sorted.Count} signatures verified against secret key."
                     : $"{sigFailures} captures failed signature validation!"
+            });
+        }
+        else
+        {
+            result.Checks.Add(new VerificationCheck
+            {
+                    Name = "HMAC Signatures in Chain",
+                    Passed = false,
+                    Message = "No signing key was provided; signatures were not verified."
             });
         }
 

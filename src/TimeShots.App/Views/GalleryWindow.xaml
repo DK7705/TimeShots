@@ -119,13 +119,15 @@
                                             <Image Source="{Binding ImagePath}" Stretch="Uniform" />
                                         </Border>
 
-                                        <StackPanel Grid.Row="1" Padding="10">
-                                            <TextBlock Text="{Binding FormattedTimestamp}" FontSize="12" FontWeight="SemiBold" />
-                                            <Grid Margin="0,4,0,0">
-                                                <TextBlock Text="{Binding Mode}" FontSize="11" Foreground="#94a3b8" HorizontalAlignment="Left" />
-                                                <TextBlock Text="{Binding Sequence, StringFormat='#{0}'}" FontSize="11" Foreground="#38bdf8" HorizontalAlignment="Right" />
-                                            </Grid>
-                                        </StackPanel>
+                                        <Border Grid.Row="1" Padding="10">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding FormattedTimestamp}" FontSize="12" FontWeight="SemiBold" />
+                                                <Grid Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding Mode}" FontSize="11" Foreground="#94a3b8" HorizontalAlignment="Left" />
+                                                    <TextBlock Text="{Binding Sequence, StringFormat='#{0}'}" FontSize="11" Foreground="#38bdf8" HorizontalAlignment="Right" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

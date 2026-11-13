@@ -3,7 +3,7 @@ namespace TimeShots.App.Models;
 public class CaptureItem
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public int Sequence { get; set; }
+    public long Sequence { get; set; }
     public string UtcTimestamp { get; set; } = string.Empty;
     public string LocalTimestamp { get; set; } = string.Empty;
     public string Timezone { get; set; } = string.Empty;

@@ -1,12 +1,13 @@
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
+using TimeShots.App.Models;
 using TimeShots.App.Services;
 using TimeShots.App.Views;
 
 namespace TimeShots.App;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private static Mutex? _singleInstanceMutex;
     private TrayIconManager? _trayManager;
@@ -21,7 +22,7 @@ public partial class App : Application
 
         if (!isNewInstance)
         {
-            MessageBox.Show("TimeShots is already running in the system tray.", "TimeShots", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("TimeShots is already running in the system tray.", "TimeShots", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
@@ -64,7 +65,7 @@ public partial class App : Application
         try
         {
             using var bitmap = ScreenCaptureService.CaptureFullscreen();
-            _trayManager?.ShowNotification("TimeShots", "Fullscreen capture taken.");
+            SaveCapture(bitmap, "fullscreen");
         }
         catch (Exception ex)
         {
@@ -77,7 +78,7 @@ public partial class App : Application
         try
         {
             using var bitmap = ScreenCaptureService.CaptureActiveWindow();
-            _trayManager?.ShowNotification("TimeShots", "Window capture taken.");
+            SaveCapture(bitmap, "window");
         }
         catch (Exception ex)
         {
@@ -93,7 +94,7 @@ public partial class App : Application
             try
             {
                 using var bitmap = ScreenCaptureService.CaptureRegion(region);
-                _trayManager?.ShowNotification("TimeShots", $"Region captured ({region.Width}×{region.Height}).");
+                SaveCapture(bitmap, "region");
             }
             catch (Exception ex)
             {
@@ -101,6 +102,15 @@ public partial class App : Application
             }
         };
         overlay.Show();
+    }
+
+    private void SaveCapture(System.Drawing.Bitmap bitmap, string mode)
+    {
+        var settings = AppSettings.Load();
+        var metadata = new CaptureStorageService(settings).SaveCapture(bitmap, mode);
+        _trayManager?.ShowNotification(
+            "TimeShots",
+            $"Capture #{metadata.Sequence} saved to {settings.StoragePath}.");
     }
 
     private void OpenGallery()

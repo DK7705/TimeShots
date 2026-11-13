@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TimeShots.App.Models;
+using TimeShots.App.Services;
 
 namespace TimeShots.App.Views;
 
@@ -20,9 +21,21 @@ public partial class GalleryWindow : Window
 
     public void LoadCaptures()
     {
-        // Placeholder items for demonstration / initial layout
-        // In full pipeline, storage layer provides this list
-        ApplyFilters();
+        try
+        {
+            _allCaptures = new CaptureStorageService(AppSettings.Load()).LoadCaptures().ToList();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            _allCaptures.Clear();
+            ApplyFilters();
+            System.Windows.MessageBox.Show(
+                $"Could not load captures: {ex.Message}",
+                "TimeShots",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 
     private void ApplyFilters()
@@ -105,14 +118,31 @@ public partial class GalleryWindow : Window
     {
         if (_selectedItem == null) return;
 
-        // Verification call (logic engine)
-        VerifyResultBanner.Visibility = Visibility.Visible;
-        VerifyResultBanner.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, 34, 197, 94));
-        VerifyResultBanner.BorderBrush = new SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 197, 94));
-        VerifyResultBanner.BorderThickness = new Thickness(1);
-
-        VerifyResultText.Text = "✓ Hash & HMAC signature valid";
-        VerifyResultText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(34, 197, 94));
+        try
+        {
+            var result = new CaptureStorageService(AppSettings.Load()).VerifyCapture(_selectedItem);
+            var color = result.IsValid
+                ? System.Windows.Media.Color.FromRgb(34, 197, 94)
+                : System.Windows.Media.Color.FromRgb(248, 113, 113);
+            VerifyResultBanner.Visibility = Visibility.Visible;
+            VerifyResultBanner.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, color.R, color.G, color.B));
+            VerifyResultBanner.BorderBrush = new SolidColorBrush(color);
+            VerifyResultBanner.BorderThickness = new Thickness(1);
+            VerifyResultText.Text = result.IsValid
+                ? "Image hash, timestamp, signature, and chain-hash formula verified."
+                : string.Join(" ", result.Checks.Where(check => !check.Passed).Select(check => $"{check.Name}: {check.Message}"));
+            VerifyResultText.Foreground = new SolidColorBrush(color);
+        }
+        catch (Exception ex)
+        {
+            var color = System.Windows.Media.Color.FromRgb(248, 113, 113);
+            VerifyResultBanner.Visibility = Visibility.Visible;
+            VerifyResultBanner.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(40, color.R, color.G, color.B));
+            VerifyResultBanner.BorderBrush = new SolidColorBrush(color);
+            VerifyResultBanner.BorderThickness = new Thickness(1);
+            VerifyResultText.Text = $"Verification could not be completed: {ex.Message}";
+            VerifyResultText.Foreground = new SolidColorBrush(color);
+        }
     }
 
     private void OnCloseSidebarClick(object sender, RoutedEventArgs e)

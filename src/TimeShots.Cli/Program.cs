@@ -80,10 +80,13 @@ Commands:
             }
             else if (args[i] is "--key" or "-k")
             {
-                if (i + 1 < args.Length)
+                if (i + 1 >= args.Length || args[i + 1].StartsWith('-'))
                 {
-                    keyInput = args[++i];
+                    PrintError("Missing signing key after --key.");
+                    return 1;
                 }
+
+                keyInput = args[++i];
             }
             else if (targetPath == null && !args[i].StartsWith('-'))
             {
@@ -306,15 +309,20 @@ Commands:
 
         if (File.Exists(input))
         {
-            return KeyManager.GetOrCreateKey(input);
+            return KeyManager.LoadKey(input);
         }
 
-        if (input.Trim().Length == KeyManager.KeySizeInBytes * 2)
+        try
         {
             return KeyManager.HexToKey(input);
         }
-
-        return null;
+        catch (Exception ex) when (ex is ArgumentException or FormatException)
+        {
+            throw new ArgumentException(
+                "The signing key must be an existing 256-bit key file or exactly 64 hexadecimal characters.",
+                nameof(input),
+                ex);
+        }
     }
 
     private static void PrintError(string message)

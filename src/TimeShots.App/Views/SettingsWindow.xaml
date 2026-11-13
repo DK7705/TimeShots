@@ -98,15 +98,6 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Time Sync -->
-                <Border Style="{StaticResource SettingCard}">
-                    <StackPanel>
-                        <TextBlock Text="Time Synchronization" FontSize="14" FontWeight="Bold" Margin="0,0,0,4" />
-                        <TextBlock Text="NTP server used for authoritative UTC time." FontSize="12" Foreground="#94a3b8" Margin="0,0,0,8" />
-                        <TextBox x:Name="TxtNtpServer" Text="pool.ntp.org" />
-                    </StackPanel>
-                </Border>
-
                 <!-- Overlay Appearance -->
                 <Border Style="{StaticResource SettingCard}">
                     <StackPanel>
